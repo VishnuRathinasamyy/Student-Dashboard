@@ -41,6 +41,10 @@ def upload_to_drive(django_file, filename, folder_id=None):
     # Optionally make file publicly readable (not recommended) or leave private.
     return created.get('webViewLink')
 
+from django.conf import settings
 from google.oauth2 import service_account
 
-credentials = service_account.Credentials.from_service_account_info(GOOGLE_CREDENTIALS)
+if hasattr(settings, "GOOGLE_CREDENTIALS"):
+    credentials = service_account.Credentials.from_service_account_info(settings.GOOGLE_CREDENTIALS)
+else:
+    credentials = service_account.Credentials.from_service_account_file(settings.GOOGLE_SERVICE_ACCOUNT_FILE)
