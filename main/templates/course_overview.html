@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{%load static%}
+
+{% block title %}Course Overview{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Page Header -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Explore Our Courses</h1>
+        <p class="lead">Find the perfect course for your learning journey</p>
+    </div>
+
+    <!-- Courses Grid -->
+    <div class="row g-4 mx-auto">
+        {% for course in courses %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 course-card">
+                {% if course.image %}
+                <img src="{{ course.image.url }}" class="card-img-top" style="height:180px; object-fit:cover;" alt="{{ course.title }}">
+                {% else %}
+                <img src="{% static 'default-course.jpg' %}" class="card-img-top" style="height:180px; object-fit:cover;" alt="{{ course.title }}">
+                {% endif %}
+                <div class="card-body d-flex flex-column bg-light">
+                    <h5 class="card-title fw-bold">{{ course.title }}</h5>
+                    <p class="card-text text-muted">{{ course.description|truncatewords:25 }}</p>
+                    <p class="mt-auto"><strong>Duration:</strong> {{ course.duration }} | <strong>Price:</strong> ₹{{ course.price }}</p>
+                    <p class="mt-auto"><strong>Start Today:</strong> 
+                    <a href="https://docs.google.com/forms/d/1VRN_MBa_BHmlpDYyVuZHBbYenijpA-yS3jD1k8jyStQ" class="btn btn-primary mt-3 w-100" target="_blank"
+                        rel="noopener noreferrer">Enroll Now</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center">No courses available right now. Please check back later.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.course-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+</style>
+{% endblock %}
+

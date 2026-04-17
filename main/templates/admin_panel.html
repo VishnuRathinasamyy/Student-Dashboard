@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{%load static%}
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; overflow-x: hidden;">
+
+    <!-- Sidebar -->
+    <div class=" text-white flex-shrink-0 p-3" style="width: 250px; background-color: #1100ffff;">
+        <!-- Profile Section -->
+        <div class="text-center mb-4">
+            <img src="{% static 'default-profile.png' %}" class="rounded-circle shadow" alt="Profile" width="100" height="100">
+            <input type="text" class="form-control mt-2 text-center fw-bold bg-secondary text-white border-0 rounded-pill" value="Admin Name" id="profileName">
+        </div>
+
+        <!-- Menu -->
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link active menu-item rounded" data-target="studyPayment">Study and Payment</a>
+            </li>
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link menu-item rounded" data-target="attendance">Attendance</a>
+            </li>
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link menu-item rounded" data-target="tasks">Tasks</a>
+            </li>
+            {% comment %} <li class="nav-item mb-1">
+                <a href="{% url 'admin_panel' %}" class="nav-link menu-item rounded" >Materials</a>
+            </li>  {% endcomment %}
+            <a href="#" class="nav-link menu-item rounded" data-target="materials">Materials</a>
+            {% comment %} <li><a class="nav-link fw-semibold text-white" href="{% url 'course_overview' %}">Course Overview</a></li> {% endcomment %}
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link menu-item rounded" data-target="classesAssign">Classes Assign</a>
+            </li>
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link menu-item rounded" data-target="certificate">Certificate</a>
+            </li>
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link menu-item rounded" data-target="courses">Courses</a>
+            </li>
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link menu-item rounded" data-target="document">Document</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    {% comment %} <div class="flex-grow-1 bg-light p-4" id="contentArea">
+        <div class="container-fluid">
+            <h2 class="mb-3">Welcome to the Admin Panel</h2>
+            <p>Select a menu item on the left to view its content here.</p>
+        </div>
+    </div> {% endcomment %}
+    <div class="flex-grow-1 bg-light p-4" id="contentArea">
+
+        <!-- ✅ DEFAULT WELCOME -->
+        <div id="defaultContent">
+            <div class="container-fluid">
+                <h2 class="mb-3">Welcome to the Admin Panel</h2>
+                <p>Select a menu item on the left to view its content here.</p>
+            </div>
+        </div>
+
+        <!-- ✅ MATERIALS CONTENT -->
+        <div id="materials" style="display:none;">
+            <div class="container-fluid">
+                <h3 class="text-primary mb-3">Materials</h3>
+
+                <div class="bg-white p-3 rounded shadow-sm">
+                    {% if materials %}
+                    <ul class="list-group">
+                        {% for material in materials %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ material.title }}
+                                <a href="{{ material.pdf_file.url }}" target="_blank" rel="noopener"
+                                class="btn btn-sm btn-primary open-file">
+                                    Open
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">No materials uploaded yet.</p>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const menuItems = document.querySelectorAll('.menu-item');
+    const defaultContent = document.getElementById("defaultContent");
+    const materialsContent = document.getElementById("materials");
+
+    // ✅ Sidebar Menu Click Handling
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e){
+            e.preventDefault();   // ✅ Only prevents menu navigation
+            e.stopPropagation(); // ✅ Stops event interfering with Open button
+
+            // Active class control
+            menuItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+
+            const target = this.getAttribute("data-target");
+
+            // Hide both sections
+            defaultContent.style.display = "none";
+            materialsContent.style.display = "none";
+
+            if (target === "materials") {
+                materialsContent.style.display = "block";  // ✅ SHOW MATERIALS
+            } else {
+                defaultContent.style.display = "block";   // ✅ SHOW OTHER CONTENT
+                defaultContent.innerHTML = `
+                    <div class="container-fluid">
+                        <h3 class="text-primary">${this.textContent}</h3>
+                        <div class="p-3 bg-white rounded shadow-sm mt-3">
+                            <p>Content for <strong>${this.textContent}</strong> will appear here.</p>
+                        </div>
+                    </div>`;
+            }
+        });
+    });
+
+    // ✅ THIS IS THE MOST IMPORTANT FIX
+    // ✅ It prevents the menu JS from hijacking the Open button
+    document.querySelectorAll(".open-file").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            e.stopPropagation(); // ✅ STOPS PAGE REFRESH
+            // ✅ Do NOT use preventDefault here — browser must open the file normally
+        });
+    });
+
+});
+</script>
+
+
+
+<style>
+    /* Sidebar */
+    .nav-link {
+        color: #cfd8dc;
+        font-weight: 500;
+        transition: all 0.3s;
+        padding: 10px 20px;
+    }
+    .nav-link:hover {
+        background-color: #495057;
+        color: #fff;
+    }
+    .nav-link.active {
+        background-color: #4f46e5;
+        color: #fff;
+    }
+
+    /* Profile Input */
+    #profileName {
+        text-align: center;
+        font-size: 1rem;
+    }
+
+    /* Scrollbar for sidebar if needed */
+    .flex-shrink-0 {
+        overflow-y: auto;
+    }
+
+    /* Right content styling */
+    #contentArea {
+        min-height: 100vh;
+    }
+
+    #contentArea h3 {
+        font-weight: 600;
+    }
+
+    #contentArea .shadow-sm {
+        border-left: 5px solid #4f46e5;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .d-flex {
+            flex-direction: column;
+        }
+        .flex-shrink-0 {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load static %}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-dark shadow-sm py-2 py-sm-3">
+    <div class="container ">
+
+        <!-- Left Logo -->
+        <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+            <img src="{% static 'images/logo-3.png' %}" height="45">
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <svg width="30" height="30" viewBox="0 0 100 80" fill="white">
+                <rect width="100" height="10"></rect>
+                <rect y="30" width="100" height="10"></rect>
+                <rect y="60" width="100" height="10"></rect>
+            </svg>
+        </button>
+
+
+        <!-- Center Menu -->
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav mx-auto gap-4 top-nav">
+                <li><a class="nav-link fw-semibold text-white home" href="{% url 'home' %}">Home</a></li>
+                <li><a class="nav-link fw-semibold text-white Overview" href="{% url 'course_overview' %}">Course Overview</a></li>
+                {% comment %} <li><a class="nav-link fw-semibold text-white" href="{% url 'certificates' %}">Certificates</a></li> {% endcomment %}
+            </ul>
+
+            <div class="mt-3 mt-lg-0">
+                {% if request.user.is_authenticated %}
+                    {% if request.user.is_superuser %}
+                        <a class="btn btn-warning me-2 mt-sm-2" href="{% url 'register' %}">Register</a>
+                    {% endif %}
+                    <a class="btn btn-primary mt-sm-2" href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a class="btn btn-outline-primary bg-light me-2 " style="color:white; background-color:#f6554d !important; border:1px solid yellow;" href="{% url 'login' %}">Login</a>
+                {% endif %}
+            </div>
+
+
+
+        </div>
+    </div>
+</nav>

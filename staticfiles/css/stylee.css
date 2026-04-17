@@ -1,0 +1,89 @@
+
+.long-div{
+    width: 130px;
+    height: 1600px;
+    /* border: 2px solid black; */
+}
+.long-div-2{
+    width: 60px;
+    height: 1400px;
+    border-right: 2px dashed rgb(142, 137, 137);
+    margin-top: 150px;
+}
+.box-1, .box-2, .box-3{
+    position: relative;
+}
+
+.fa-circle, .fa-circle-dot, .fa-face-smile {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    color: #007bff;
+    cursor: pointer;
+}
+.fa-circle{
+    top: -10px;
+    left: 47px;
+}
+.fa-circle-dot{
+    top: 790px;
+    left: 47px;
+}
+.fa-circle-dot::before{
+    background: #f4f6f9;
+    /* background: transparent; */
+}
+.fa-face-smile{
+    top: 1380px;
+    left: 47px;
+}
+.fa-face-smile::before{
+    background: #f4f6f9;
+    /* background: transparent; */
+}
+
+.mt-4 {
+    margin-top: 1.5rem !important;
+    margin: 0px;
+}
+
+
+
+.me-2 {
+    background: #f6554d !important;
+}
+.btn-outline-primary {
+    background: #f6554d !important;
+}
+
+.hero-section{
+    width: 100%;
+}
+.container-2{
+    width: 100%;
+}
+.shadow-1{
+    background-color: rgb(245, 245, 245);
+}
+
+/* @media only screen and (max-width: 1024px) {
+    .long-div,
+    .long-div-2 {
+        display: none;
+    }
+} */
+@media screen and (max-width: 768px) {
+    .long-div,
+    .long-div-2 {
+        display: none;
+    }
+}
+
+
+
+
+
+
+
+

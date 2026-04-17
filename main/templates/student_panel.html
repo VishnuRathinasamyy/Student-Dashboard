@@ -1,0 +1,891 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<!-- ✅ Student Panel Mobile Menu Only -->
+<div id="menuOverlay" class="menu-overlay"></div>
+<button id="menuToggleBtn" title="menu" class="mobile-menu-btn d-lg-none">
+  <i class="fas fa-bars"></i>
+  <!-- closed -->
+</button>
+<div class="container-fluid">
+  <div class="row mx-auto">
+    <div
+      class="col-md-2 bg-light vh-100 p-3 navv dashboard-left mobile-offcanvas"
+      id="mobileSidebar"
+    >
+      <h5 class="d-name">Student-DASHBOARD</h5>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a
+            href="javascript:void(0)"
+            class="nav-link side-bar"
+            onclick="showSection('student-info', this)"
+            >Student Info</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            href="javascript:void(0)"
+            class="nav-link side-bar"
+            onclick="showSection('s-course', this)"
+            >Course</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            href="javascript:void(0)"
+            class="nav-link side-bar"
+            onclick="showSection('s-materials', this)"
+            >Materials</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            href="javascript:void(0)"
+            class="nav-link side-bar"
+            onclick="showSection('certificates', this)"
+            >Certificates</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            href="javascript:void(0)"
+            class="nav-link side-bar"
+            onclick="showSection('tasks', this)"
+            >Tasks</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            href="javascript:void(0)"
+            class="nav-link side-bar"
+            onclick="showSection('attendance', this)"
+            >Attendance</a
+          >
+        </li>
+      </ul>
+    </div>
+
+    <!-- Center Content -->
+    <div class="col-md-7 p-3 mt-0 dashboard-center">
+      <div id="student-info" class="content-section">
+        <h4 class="section-title">Student Info</h4>
+        <div class="student-row mb-4">
+          <div class="profile-img-wrapper">
+            {% if student.profile_image %}
+            <img
+              src="{{ student.profile_image.url }}"
+              alt="{{ student.user.username }}"
+              class="profile-img"
+            />
+            {% else %}
+            <img
+              src="/media/student_profiles/default.png"
+              alt="Default"
+              class="profile-img"
+            />
+            {% endif %}
+          </div>
+
+          <div class="student-info flex-grow-1 px-3">
+            <h5 class="student-name">
+              {{ student.user.get_full_name|default:student.user.username }}
+            </h5>
+            <p><strong>Email:</strong> {{ student.email|default:"—" }}</p>
+            <p><strong>Phone:</strong> {{ student.phone|default:"—" }}</p>
+            <p><strong>Location:</strong> {{ student.location|default:"—" }}</p>
+            <p><strong>End Goal:</strong> {{ student.end_goal|default:"—" }}</p>
+            <p>
+              <strong>Course:</strong> {{ student.course.title|default:"—" }} |
+              <strong>Duration:</strong> {{ student.course_duration|default:"—" }}
+            </p>
+            <small class="text-muted"
+              >Joined: {{ student.user.date_joined|date:"M d, Y" }}</small
+            >
+          </div>
+
+          <div class="student-actions d-flex flex-column gap-2">
+            <a
+              href="{% url 'student_photo_edit' student.id %}"
+              class="btn btn-outline-gold btn-sm"
+              >Change Photo</a
+            >
+            <a
+              href="javascript:void(0)"
+              class="btn btn-gold btn-sm"
+              onclick="showSection('attendance', this)"
+              >View Attendance</a
+            >
+          </div>
+        </div>
+      </div>
+      <!--Course -->
+      <div id="s-course" class="content-section d-none">
+        <h4>S-Courses</h4>
+        {% for course in courses %}
+        <div class="card mb-4">
+          <div class="card-header">
+            <h4>{{ course.title }}</h4>
+            <p>{{ course.description }}</p>
+          </div>
+          <ul class="list-group list-group-flush">
+            {% for module in course.modules.all %}
+            <li
+              class="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div class="col-4">{{ module.title }}</div>
+              <div class="col-4">
+                <div class="progress">
+                  <div
+                    class="progress-bar"
+                    role="progressbar"
+                    style="width: {{ module.completion }}%;"
+                    aria-valuenow="{{ module.completion }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    {{ module.completion }}%
+                  </div>
+                </div>
+              </div>
+              <div class="col-4 text-end">
+                <button
+                  class="btn btn-primary btn-sm open-module-btn"
+                  data-bs-toggle="modal"
+                  data-bs-target="#materialModal"
+                  data-url="{% url 'module_preview' module.pk %}"
+                  data-title="{{ module.title|escapejs }}"
+                >
+                  Open Module
+                </button>
+              </div>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-center text-muted">
+              No modules yet.
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-5">
+          <h5>No Courses Available</h5>
+          <p>Please check back later.</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- ✅ PDF PREVIEW MODAL -->
+      <div class="modal fade" id="materialModal" tabindex="-1">
+        <div
+          class="modal-dialog modal-fullscreen-sm-down modal-xl modal-dialog-centered"
+        >
+          <div class="modal-content pdf-modal-content">
+            <!-- ✅ HEADER WITH TITLE + BUTTONS ON RIGHT -->
+            <div class="modal-header pdf-modal-header">
+              <h5 class="modal-title">Module</h5>
+
+              <div class="pdf-controls">
+                <button class="btn btn-secondary btn-sm" id="prevPage">
+                  Prev
+                </button>
+                <span class="mx-2">
+                  <span id="pageNum">1</span> /
+                  <span id="pageCount">1</span>
+                </span>
+                <button class="btn btn-secondary btn-sm" id="nextPage">
+                  Next
+                </button>
+                <button
+                  type="button"
+                  class="btn-close ms-3"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+            </div>
+
+            <!-- ✅ FULL HEIGHT BODY -->
+            <div class="modal-body pdf-modal-body p-0">
+              <canvas id="pdfCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ END MODAL -->
+
+      <!-- Materials -->
+      <div id="s-materials" class="content-section d-none">
+        <h4 class="mb-4">S-Materials</h4>
+
+        {% for course in courses %}
+        <section class="mb-5">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h5 class="mb-0">{{ course.title }}</h5>
+              <small class="text-muted">{{ course.description }}</small>
+            </div>
+            <span class="badge bg-secondary">
+              {{ course.materials.count }} PDFs
+            </span>
+          </div>
+
+          {% if course.materials.exists %}
+          <div class="row gy-4">
+            {% for material in course.materials.all %}
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column ">
+                  <h6 class="card-title">{{ material.title }}</h6>
+                  <p class="small text-muted mb-3">
+                    {{ material.uploaded_at|date:"M d, Y" }}
+                  </p>
+
+                  <div class="mt-auto d-flex justify-content-between">
+                    <button
+                      class="btn btn-sm btn-primary open-material-btn"
+                      data-bs-toggle="modal"
+                      data-bs-target="#materialModal"
+                      data-url="{% url 'material_preview' material.pk %}"
+                      data-title="{{ material.title|escapejs }}"
+                    >
+                      Open
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center text-muted py-5">
+            <h5>No Materials Available</h5>
+            <p>Please check back later.</p>
+          </div>
+          {% endif %}
+        </section>
+
+        {% empty %}
+        <!-- ✅ SHOWS WHEN THERE ARE NO MATERIALS AT ALL -->
+        <div class="text-center text-muted py-5">
+          <h5>No Materials Available</h5>
+          <p>Please check back later.</p>
+        </div>
+        {% endfor %}
+      </div>
+      <!-- Attendance -->
+      <!-- ✅ Attendance Section (FULL WIDTH - RESPONSIVE) -->
+      <div id="attendance" class="content-section d-none">
+        {% include "student/attendance_fragment.html" %}
+      </div>
+
+      <div id="certificates" class="content-section d-none mt-4">
+        <div class="card gold-card p-4 shadow-lg">
+          <h4 class="gold-title text-center mb-4">🏆 Certificates</h4>
+
+          <!-- ✅ SEARCH + FILTER -->
+          <div class="row mb-3 g-2">
+            <div class="col-md-6">
+              <input
+                type="text"
+                id="certSearch"
+                class="form-control"
+                placeholder="Search Certificates..."
+              />
+            </div>
+
+            <div class="col-md-6 text-md-end text-center">
+              <div class="btn-group">
+                <button
+                  class="btn btn-outline-warning active"
+                  onclick="filterCertificates('all', this)"
+                >
+                  All
+                </button>
+                <button
+                  class="btn btn-outline-success"
+                  onclick="filterCertificates('completed', this)"
+                >
+                  Completed
+                </button>
+                <button
+                  class="btn btn-outline-secondary"
+                  onclick="filterCertificates('locked', this)"
+                >
+                  Locked
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ CERTIFICATE LIST -->
+          <ul class="list-group list-group-flush" id="certificateList">
+            {% for cert in certificates %}
+            <li
+              class="list-group-item gold-list d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 certificate-item"
+              data-title="{{ cert.course.title|lower }}"
+              data-status="{% if cert.completed %}completed{% else %}locked{% endif %}"
+            >
+              <!-- ✅ TITLE -->
+              <span class="fw-bold text-light"> {{ cert.course.title }} </span>
+
+              <!-- ✅ ACTIONS -->
+              <div class="d-flex gap-2 flex-wrap align-items-center">
+                {% if cert.completed %}
+                <!-- ✅ PREVIEW -->
+                <button
+                  class="btn btn-sm btn-info"
+                  onclick="openCertificateModal('{{ cert.file.url }}')"
+                >
+                  Preview
+                </button>
+
+                <!-- ✅ AUTO DOWNLOAD -->
+                <a
+                  href="{{ cert.file.url }}"
+                  download
+                  class="btn btn-sm btn-warning gold-btn-glow"
+                >
+                  Download
+                </a>
+                {% else %}
+                <!-- ✅ ANIMATED LOCK -->
+                <span class="gold-lock">🔒 Locked</span>
+                {% endif %}
+              </div>
+            </li>
+            {% empty %}
+
+            <div class="text-center text-muted py-5">
+              <h5 class="text-warning fw-bold">No Certificates Available</h5>
+              <p>Complete courses to unlock certificates.</p>
+            </div>
+
+            {% endfor %}
+          </ul>
+
+          <!-- No results message (hidden by default) -->
+          <div
+            id="noCertificatesMsg"
+            class="text-center text-muted py-4"
+            style="display: none"
+          >
+            <h5 class="text-warning fw-bold">No certificates found</h5>
+            <p>Try a different search or filter.</p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="modal fade certificate-show"
+        id="certificateModal"
+        tabindex="-1"
+      >
+        <div
+          class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down"
+        >
+          <div class="modal-content bg-dark gold-card text-white">
+            <div class="modal-header border-warning">
+              <h5 class="modal-title text-warning">Certificate Preview</h5>
+              <button
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+
+            <div class="modal-body p-0 preview-wrapper">
+              <img
+                id="certificateFrame"
+                src=""
+                class="certificate-preview"
+                style="pointer-events: none"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tasks -->
+      <div id="tasks" class="content-section d-none">
+        <h4>Tasks</h4>
+        <ul class="list-group">
+          {% for task in tasks %}
+          <li class="list-group-item">
+            <strong>{{ task.title }}</strong> ({{ task.course.title }})
+            <form
+              action="{% url 'submit_task' %}"
+              method="post"
+              enctype="multipart/form-data"
+              class="mt-2"
+            >
+              {% csrf_token %}
+              <input type="file" name="submission" required />
+              <input type="hidden" name="task_id" value="{{ task.id }}" />
+              <button class="btn btn-sm btn-primary">Submit</button>
+            </form>
+          </li>
+          {% empty %}
+          <!-- ✅ SHOWS WHEN NO TASKS EXIST -->
+          <div class="text-center text-muted py-5">
+            <h5>No Task Assigned Yet</h5>
+            <p>Please check back later.</p>
+          </div>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-3 p-3 bg-light vh-100 mt-0 calen dashboard-right">
+      <div
+        class="d-flex align-items-center justify-content center"
+        style="flex-direction: column"
+      >
+        <h5 class="mb-1" style="color: #f6554d">Calendar</h5>
+        <div class="d-flex" style="flex-direction: row">
+          <strong class="d-flex justify-content-center align-items-center"
+            >Attendance:</strong
+          >
+          {{ present_count }} / {{ class_days }}
+        </div>
+      </div>
+      <div id="calendar"></div>
+      {{ events|json_script:"events-data" }}
+
+      <div class="row">
+        <div class="col d-flex flex-column mt-4 align-items-center">
+          <h6><i class="bi bi-info-circle"></i></h6>
+          <div class="d-flex flex-sm-column gx-4">
+            <p class="m-0 note"><b style="color:green;">Green:</b> Present </p>
+            <p class=" m-0 note"><b style="color:#f6554d">Red:</b> Absent</p>
+            <p class="m-0 note"><b style="color:Blue;">Gray:</b> Task due date</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<link
+  href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    //showSection("student-info");
+
+    var calendarEl = document.getElementById("calendar");
+    var events = JSON.parse(document.getElementById("events-data").textContent);
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      height: "auto",
+      fixedWeekCount: false,
+      expandRows: true,
+      headerToolbar: {
+        left: "prev",
+        center: "title",
+        right: "next",
+      },
+      titleFormat: { year: "numeric", month: "short" },
+      dayMaxEvents: true,
+      selectable: false,
+      editable: false,
+      events: events,
+      //eventDisplay: 'block',  // ✅ ensures events appear properly
+      // dayCellDidMount: function(info) {
+      //info.el.style.backgroundColor = "#fff4c2";  // optional gold cell background
+      //}
+      eventDidMount: function (info) {
+        // Hide event title on the calendar
+        info.el.style.color = "transparent";
+
+        // Create tooltip
+        var tooltip = document.createElement("div");
+        tooltip.className = "fc-tooltip";
+        tooltip.innerHTML =
+          "<strong>" +
+          info.event.title +
+          "</strong><br>" +
+          (info.event.extendedProps.description || "");
+        document.body.appendChild(tooltip);
+
+        info.el.addEventListener("mouseenter", function () {
+          tooltip.style.display = "block";
+
+          var rect = info.el.getBoundingClientRect();
+          var tooltipWidth = tooltip.offsetWidth;
+          var tooltipHeight = tooltip.offsetHeight;
+          var top = rect.top - tooltipHeight - 5;
+          var left = rect.left;
+
+          // Prevent tooltip from going above the viewport
+          if (top < 0) top = rect.bottom + 5;
+
+          // Prevent tooltip from going off the right edge
+          if (left + tooltipWidth > window.innerWidth) {
+            left = window.innerWidth - tooltipWidth - 5;
+          }
+
+          // Prevent tooltip from going off the left edge
+          if (left < 0) left = 5;
+
+          tooltip.style.top = top + "px";
+          tooltip.style.left = left + "px";
+        });
+
+        info.el.addEventListener("mouseleave", function () {
+          tooltip.style.display = "none";
+        });
+      },
+    });
+
+    calendar.render();
+  });
+{% comment %} 
+  let sectionHistory = [];
+  let isGoingBack = false;
+
+  function showSection(sectionId, el) {
+    const sections = document.querySelectorAll(".content-section");
+    const currentVisible = document.querySelector(
+      ".content-section:not(.d-none)"
+    );
+
+    if (!isGoingBack && currentVisible && currentVisible.id !== sectionId) {
+      sectionHistory.push(currentVisible.id); // ✅ STORE EVERY STEP
+    }
+
+    isGoingBack = false;
+
+    sections.forEach((section) => section.classList.add("d-none"));
+
+    const activeSection = document.getElementById(sectionId);
+    if (activeSection) activeSection.classList.remove("d-none");
+
+    const links = document.querySelectorAll(".nav-link");
+    links.forEach((link) => link.classList.remove("active"));
+    if (el) el.classList.add("active");
+  }
+
+  // ✅ Auto-set first tab active on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    const firstLink = document.querySelector(".nav-link");
+    if (firstLink) {
+      firstLink.classList.add("active");
+    }
+    showSection("student-info", firstLink);
+  });
+</script> {% endcomment %}
+
+  let sectionHistory = [];
+  let isGoingBack = false;
+
+  function showSection(sectionId, el) {
+    const sections = document.querySelectorAll(".content-section");
+    const currentVisible = document.querySelector(
+      ".content-section:not(.d-none)"
+    );
+
+    if (!isGoingBack && currentVisible && currentVisible.id !== sectionId) {
+      sectionHistory.push(currentVisible.id);
+    }
+
+    isGoingBack = false;
+
+    sections.forEach(section => section.classList.add("d-none"));
+
+    const activeSection = document.getElementById(sectionId);
+    if (activeSection) activeSection.classList.remove("d-none");
+
+    const links = document.querySelectorAll(".nav-link");
+    links.forEach(link => link.classList.remove("active"));
+    if (el) el.classList.add("active");
+
+    // ✅ SAVE ACTIVE TAB
+    localStorage.setItem("studentActiveTab", sectionId);
+    
+  }
+</script>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const savedTab =
+      localStorage.getItem("studentActiveTab") || "student-info";
+
+    let activeLink = null;
+    document.querySelectorAll(".nav-link").forEach(link => {
+      if (link.getAttribute("onclick")?.includes(savedTab)) {
+        activeLink = link;
+      }
+    });
+
+    showSection(savedTab, activeLink);
+  });
+</script>
+
+
+
+
+<script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+
+<!-- PDF.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.8.162/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.8.162/pdf.worker.min.js";
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("materialModal");
+    const canvas = document.getElementById("pdfCanvas");
+    const ctx = canvas.getContext("2d");
+    const titleEl = modal.querySelector(".modal-title");
+
+    const prevBtn = document.getElementById("prevPage");
+    const nextBtn = document.getElementById("nextPage");
+    const pageNumEl = document.getElementById("pageNum");
+    const pageCountEl = document.getElementById("pageCount");
+
+    let pdfDoc = null;
+    let currentPage = 1;
+    let totalPages = 1;
+    let isRendering = false;
+
+    // ✅ RENDER PAGE FUNCTION
+    async function renderPage(num) {
+      if (isRendering) return;
+      isRendering = true;
+
+      const page = await pdfDoc.getPage(num);
+
+      const modalBody = document.querySelector("#materialModal .modal-body");
+      const containerWidth = modalBody.clientWidth;
+
+      // ✅ Base viewport
+      const viewport = page.getViewport({ scale: 1 });
+
+      // ✅ Mobile fit scale
+      const scale = containerWidth / viewport.width;
+
+      // ✅ High DPI FIX (VERY IMPORTANT)
+      const outputScale = window.devicePixelRatio || 1;
+
+      const scaledViewport = page.getViewport({ scale });
+      const highResViewport = page.getViewport({ scale: scale * outputScale });
+
+      // ✅ Set actual pixel size (for sharpness)
+      canvas.width = highResViewport.width;
+      canvas.height = highResViewport.height;
+
+      // ✅ Set visible size (for layout)
+      canvas.style.width = scaledViewport.width + "px";
+      canvas.style.height = scaledViewport.height + "px";
+
+      // ✅ Scale drawing for retina
+      ctx.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+
+      const renderContext = {
+        canvasContext: ctx,
+        viewport: scaledViewport,
+      };
+
+      await page.render(renderContext).promise;
+
+      pageNumEl.textContent = num;
+      isRendering = false;
+    }
+
+    // ✅ OPEN PDF IN MODAL
+    document
+      .querySelectorAll(".open-material-btn, .open-module-btn")
+      .forEach((btn) => {
+        btn.addEventListener("click", async function () {
+          const url = this.dataset.url;
+          titleEl.textContent = this.dataset.title;
+
+          try {
+            const loadingTask = pdfjsLib.getDocument({
+              url: url,
+              withCredentials: true,
+            });
+            pdfDoc = await loadingTask.promise;
+
+            totalPages = pdfDoc.numPages;
+            currentPage = 1;
+
+            pageCountEl.textContent = totalPages;
+
+            renderPage(currentPage);
+          } catch (err) {
+            console.error("PDF Load Error:", err);
+          }
+        });
+      });
+
+    // ✅ NEXT PAGE
+    nextBtn.addEventListener("click", function () {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPage(currentPage);
+      }
+    });
+
+    // ✅ PREVIOUS PAGE
+    prevBtn.addEventListener("click", function () {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPage(currentPage);
+      }
+    });
+
+    // ✅ CLEAR WHEN MODAL CLOSES
+    modal.addEventListener("hidden.bs.modal", function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pdfDoc = null;
+      currentPage = 1;
+      totalPages = 1;
+      pageNumEl.textContent = "1";
+      pageCountEl.textContent = "1";
+    });
+  });
+  window.addEventListener("resize", function () {
+    if (pdfDoc) {
+      renderPage(currentPage);
+    }
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("menuToggleBtn");
+    const sidebar = document.querySelector(".mobile-offcanvas");
+    const overlay = document.getElementById("menuOverlay");
+    const icon = toggleBtn ? toggleBtn.querySelector("i") : null;
+
+    if (!toggleBtn || !sidebar || !overlay || !icon) return;
+
+    function toggleMenu() {
+      const isOpen = sidebar.classList.contains("active");
+
+      if (isOpen) {
+        // ✅ CLOSE
+        sidebar.classList.remove("active");
+        overlay.classList.remove("active");
+        toggleBtn.classList.remove("rotate");
+        icon.classList.remove("fa-times");
+        icon.classList.add("fa-bars"); // ✅ Back to menu icon
+      } else {
+        // ✅ OPEN
+        sidebar.classList.add("active");
+        overlay.classList.add("active");
+        toggleBtn.classList.add("rotate");
+        icon.classList.remove("fa-bars");
+        icon.classList.add("fa-times"); // ✅ Close (X) icon
+      }
+    }
+
+    // ✅ SAME BUTTON = OPEN + CLOSE (TOGGLE)
+    toggleBtn.addEventListener("click", toggleMenu);
+
+    // ✅ CLICK OVERLAY TO CLOSE
+    overlay.addEventListener("click", toggleMenu);
+
+    // ✅ AUTO CLOSE WHEN ANY NAV LINK IS CLICKED
+    sidebar.querySelectorAll(".nav-link").forEach((link) => {
+      link.addEventListener("click", () => {
+        sidebar.classList.remove("active");
+        overlay.classList.remove("active");
+        toggleBtn.classList.remove("rotate");
+        icon.classList.remove("fa-times");
+        icon.classList.add("fa-bars"); // ✅ Reset icon on nav click
+      });
+    });
+  });
+</script>
+
+<script>
+  function openCertificateModal(url) {
+    const frame = document.getElementById("certificateFrame");
+    frame.src = url;
+    new bootstrap.Modal(document.getElementById("certificateModal")).show();
+  }
+</script>
+
+<script>
+  let currentFilter = "all";
+
+  /* ✅ GLOBAL FILTER FUNCTION */
+  function applyFilters() {
+    const searchBox = document.getElementById("certSearch");
+    const searchValue = searchBox ? searchBox.value.toLowerCase().trim() : "";
+
+    const items = document.querySelectorAll(".certificate-item");
+    let visibleCount = 0;
+
+    items.forEach((item) => {
+      const title = item.dataset.title || "";
+      const status = item.dataset.status || "";
+
+      const matchesSearch = title.includes(searchValue);
+      const matchesFilter = currentFilter === "all" || status === currentFilter;
+
+      console.log(title, searchValue);
+      console.log(matchesSearch, matchesFilter);
+
+      if (matchesSearch && matchesFilter) {
+        item.classList.remove("d-none"); // ✅ IMPORTANT FIX
+        visibleCount++;
+        console.log("matches");
+      } else {
+        item.classList.add("d-none");
+        console.log("not matches");
+      }
+    });
+
+    const msg = document.getElementById("noCertificatesMsg");
+    if (msg) {
+      msg.style.display = visibleCount === 0 ? "block" : "none";
+    }
+  }
+
+  /* ✅ SEARCH */
+  document
+    .getElementById("certSearch")
+    ?.addEventListener("input", applyFilters);
+
+  /* ✅ FILTER BUTTONS */
+  function filterCertificates(type, btn) {
+    currentFilter = type;
+
+    document
+      .querySelectorAll(".btn-group .btn")
+      .forEach((b) => b.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+
+    applyFilters();
+  }
+</script>
+
+<script>
+  function goBackUI() {
+    if (sectionHistory.length === 0) return;
+
+    isGoingBack = true;
+    const previousSection = sectionHistory.pop();
+
+    const links = document.querySelectorAll(".nav-link");
+    let activeLink = null;
+
+    links.forEach((link) => {
+      if (link.getAttribute("onclick")?.includes(previousSection)) {
+        activeLink = link;
+      }
+    });
+
+    showSection(previousSection, activeLink);
+  }
+</script>
+
+<button class="back-btn-fixed" onclick="goBackUI()">⬅</button>
+
+{% endblock %}

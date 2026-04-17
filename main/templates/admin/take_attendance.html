@@ -1,0 +1,57 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+
+<h2>Take Attendance</h2>
+
+<p>
+  <strong>Period:</strong>
+  {{ period.start_date }} → {{ period.end_date|default:"Ongoing" }}
+</p>
+
+<form method="post">
+  {% csrf_token %}
+
+  <!-- DATE -->
+  <div style="margin-bottom: 10px;">
+    <label><strong>Date:</strong></label><br>
+    <input type="date" name="date" required>
+  </div>
+
+  <!-- STATUS -->
+  <div style="margin-bottom: 10px;">
+    <label><strong>Status:</strong></label><br>
+    {% for value, label in statuses %}
+      <label style="margin-right: 15px;">
+        <input type="radio" name="status" value="{{ value }}" required>
+        {{ label }}
+      </label>
+    {% endfor %}
+  </div>
+
+  <!-- NOTE -->
+  <div style="margin-bottom: 10px;">
+    <label><strong>Admin Note:</strong></label><br>
+    <textarea name="note" rows="2" style="width: 300px;"></textarea>
+  </div>
+
+  <hr>
+
+  <!-- STUDENT CHECKBOXES -->
+  <h3>Select Students</h3>
+
+  {% for student in students %}
+    <label style="display:block;">
+      <input type="checkbox" name="students" value="{{ student.id }}">
+      {{ student.user.username }} ({{ student.user.first_name }})
+    </label>
+  {% endfor %}
+
+  <br>
+
+  <button type="submit" class="default">
+    Save Attendance
+  </button>
+
+</form>
+
+{% endblock %}

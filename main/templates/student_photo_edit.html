@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="profile-update-wrapper d-flex align-items-center justify-content-center min-vh-100 bg-light">
+  <div class="profile-update-card p-4 rounded shadow-lg text-center position-relative">
+    <button class="page-back-btn" onclick="window.history.back()">
+      ← Back
+  </button>
+
+    <h4 class="mb-4 section-title">Update Profile Picture</h4>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- Current profile image -->
+      <div class="mb-4">
+        {% if student.profile_image %}
+          <img src="{{ student.profile_image.url }}" class="profile-img-update mb-3 rounded-circle" alt="Profile Image">
+        {% else %}
+          <img src="/media/student_profiles/default.png" class="profile-img-update mb-3 rounded-circle" alt="Default Profile">
+        {% endif %}
+      </div>
+
+      <!-- File input -->
+      <div class="mb-3">
+        <input type="file" name="profile_image" class="form-control form-control-lg" required>
+      </div>
+
+      <!-- Submit button -->
+      <button type="submit" class="btn btn-gold btn-lg w-100">
+        Update Photo
+      </button>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
