@@ -173,8 +173,12 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Path to the service account JSON (relative to project root)
-GOOGLE_SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "..", "credentials", "service_account.json")
-# Or absolute path if you prefer
+GOOGLE_SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "..", "credentials", "service_account.json")# Or absolute path if you prefer
+
+import json
+import os
+
+GOOGLE_CREDENTIALS = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
 # GOOGLE_SERVICE_ACCOUNT_FILE = '/path/to/project_root/credentials/service_account.json'
 
 # GOOGLE_DRIVE_FOLDER_ID = "1dhHOf7MDtY1SoMX5_cJjIYhZt9pjN3AA"
